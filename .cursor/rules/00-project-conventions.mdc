@@ -1,0 +1,20 @@
+---
+description: Core conventions for the vacation-manager monorepo
+alwaysApply: true
+---
+
+# Project Conventions
+
+- **Contract is law.** `@vm/shared` is the single source of truth for types,
+  Zod schemas, routes, and the error model. Never redefine these in an app;
+  import them. If the boundary must change, change `packages/shared` first.
+- **Comments are precise and scarce.** Code should be self-explanatory. Only
+  comment non-obvious intent, trade-offs, or constraints. Never narrate code
+  (no `// loop over users`).
+- **TypeScript strict**, no `any`. Prefer small, single-responsibility modules.
+- **Auth vs. authz are separate.** Authentication (identity from JWT) and
+  authorization (role policy) are distinct, composable units — never one blob.
+- **Validate at the edge, enforce in the domain.** Shape validation happens at
+  the boundary (Zod); business invariants are enforced in the domain layer.
+- **Commits are feature-based** and conventional (`feat(api): ...`,
+  `feat(web): ...`, `chore:`, `build:`, `docs:`).

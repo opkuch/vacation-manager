@@ -1,0 +1,30 @@
+---
+description: Backend architecture for the CEF/Node API
+globs: apps/api/**
+alwaysApply: false
+---
+
+# Backend Architecture (handler → controller → service)
+
+Dependencies point inward: `handlers → controllers → services → domain`;
+`infrastructure` implements ports. The domain imports nothing from infra, CEF,
+or TypeORM.
+
+- **handlers/** — CEF transport edge (thin). Parse input, authenticate/authorize,
+  delegate to a controller, map transport errors to a `Response`.
+- **controllers/** — Request orchestration. Call services, pick HTTP status +
+  body. No domain rules.
+- **application/services/** — Use-case logic. Writes load/save the aggregate and
+  publish domain events; reads return DTOs from the repository.
+- **application/ports/** — Repository and service interfaces.
+- **domain/** — `VacationRequest` aggregate (status state machine), `DateRange`
+  value object, domain events, typed `DomainError`s. All business rules live
+  here and cannot be bypassed.
+- **infrastructure/** — TypeORM entities/repositories (implement ports),
+  `JwtService`, `PasswordHasher`, in-process event bus + subscribers.
+
+Rules:
+- Reads skip the domain model: service → repository → DTO.
+- Writes go through the aggregate; persist; then publish domain events.
+- Authorization is a composable wrapper: `authenticate` then `authorize(roles)`.
+- Map `DomainError` → HTTP via the shared `ErrorCode` / `ERROR_HTTP_STATUS`.

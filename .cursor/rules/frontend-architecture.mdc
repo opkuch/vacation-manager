@@ -1,0 +1,28 @@
+---
+description: Frontend architecture for the Vue web app
+globs: apps/web/**
+alwaysApply: false
+---
+
+# Frontend Architecture (Vue 3 + Composition API)
+
+- **Composition API + `<script setup lang="ts">`** only. No Options API.
+- **Feature-based folders** under `src/features/*` (auth, requests, validation,
+  team-planning). Cross-cutting reusable UI lives in `src/components/ui/*`.
+- **Composables** hold stateful/side-effectful logic: `useApi` (Axios instance
+  with auth + 401 interceptors), `useAuth`, `usePagination`. Keep them small
+  and typed.
+- **Pinia** for shared state (auth session, requests). Don't destructure stores
+  without `storeToRefs`.
+- **Router guards** enforce auth + role using the access info from `API_ROUTES`.
+- **Props down, events up.** Type `defineProps`/`defineEmits`. Keep views thin
+  (composition surfaces); push UI sections into child components.
+
+## Theming (centralized)
+
+- All design decisions are **CSS custom properties** in one tokens file
+  (`--color-*`, `--space-*`, `--radius-*`, `--font-*`), with light/dark via a
+  `data-theme` attribute.
+- **Tailwind reads those vars** (e.g. `colors.primary = 'var(--color-primary)'`).
+- Components use **semantic tokens only** — never hard-coded hex/rgb. Changing
+  the theme happens in one place.
