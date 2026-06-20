@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import { toast } from 'vue-sonner'
 import {
   type ListRequestsQuery,
   type VacationRequestDto,
@@ -61,7 +62,12 @@ function onPageChange(next: number): void {
 
 async function onApprove(request: VacationRequestDto): Promise<void> {
   const ok = await approveApi.execute(request.id)
-  if (ok) await load()
+  if (ok) {
+    toast.success('Request approved.')
+    await load()
+  } else if (approveApi.error.value) {
+    toast.error(approveApi.error.value.message)
+  }
 }
 
 function openReject(request: VacationRequestDto): void {
@@ -73,18 +79,21 @@ async function onRejectConfirm(comment: string): Promise<void> {
   if (!rejecting.value) return
   const ok = await rejectApi.execute(rejecting.value.id, comment)
   if (ok) {
+    toast.success('Request rejected.')
     rejecting.value = null
     await load()
   }
 }
 
 onMounted(load)
+
+watch(() => all.value.total, setTotal)
 </script>
 
 <template>
   <div class="flex flex-col gap-6">
     <header>
-      <h1 class="text-xl font-semibold text-text">Validation Dashboard</h1>
+      <h1 class="font-display text-xl font-semibold text-text">Validation Dashboard</h1>
       <p class="text-sm text-muted">Review, approve, and reject vacation requests.</p>
     </header>
 
@@ -97,10 +106,6 @@ onMounted(load)
         @update:user-id="onFiltersChange"
       />
     </BaseCard>
-
-    <p v-if="approveApi.error.value" class="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
-      {{ approveApi.error.value.message }}
-    </p>
 
     <div class="flex flex-col gap-3">
       <BaseTable

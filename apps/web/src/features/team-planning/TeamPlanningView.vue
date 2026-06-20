@@ -35,7 +35,7 @@ onMounted(() => list.execute({ page: 1, pageSize: 50 }))
 <template>
   <div class="flex flex-col gap-6">
     <header>
-      <h1 class="text-xl font-semibold text-text">Team Planning</h1>
+      <h1 class="font-display text-xl font-semibold text-text">Team Planning</h1>
       <p class="text-sm text-muted">Upcoming and pending time off across the team.</p>
     </header>
 

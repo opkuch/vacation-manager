@@ -34,7 +34,7 @@ async function onSubmit(): Promise<void> {
   <div class="flex min-h-screen items-center justify-center px-4">
     <div class="w-full max-w-sm">
       <div class="mb-4 flex items-center justify-between">
-        <h1 class="text-xl font-semibold text-text">Vacation Manager</h1>
+        <h1 class="font-display text-xl font-semibold text-text">Vacation Manager</h1>
         <button
           class="rounded-md border border-border px-2 py-1.5 text-sm text-muted transition-colors hover:text-text"
           :aria-label="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"

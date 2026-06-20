@@ -25,9 +25,9 @@ const navItems = computed<NavItem[]>(() => {
 
 <template>
   <div class="flex min-h-screen flex-col">
-    <header class="border-b border-border bg-surface">
-      <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-        <span class="text-lg font-semibold text-text">Vacation Manager</span>
+    <header class="border-b border-border/70 bg-surface/90 backdrop-blur-sm">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-4">
+        <span class="font-display text-lg font-semibold text-text">Vacation Manager</span>
         <nav class="flex flex-1 flex-wrap items-center gap-1">
           <RouterLink
             v-for="item in navItems"
