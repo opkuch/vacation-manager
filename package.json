@@ -1,0 +1,25 @@
+{
+  "name": "vacation-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vacation request management app (Vue + CEF/Node + PostgreSQL/TypeORM)",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:api": "pnpm --filter @vm/api dev",
+    "dev:web": "pnpm --filter @vm/web dev",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "db:migrate": "pnpm --filter @vm/api db:migrate",
+    "db:seed": "pnpm --filter @vm/api db:seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}
