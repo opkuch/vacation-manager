@@ -2,32 +2,76 @@
 
 ## Install
 
-Requires **Docker** (recommended) or **Node 20+**, **pnpm**, and **PostgreSQL**.
+Requires **Node 20+**, **pnpm**, and **PostgreSQL**. **Docker is optional** — use it for
+the full stack or only for Postgres; see [Run](#run) below.
 
 ```bash
 pnpm install
 cp .env.example .env
 ```
 
-## Run (Docker)
+## Run
+
+Demo logins (all modes):
+
+
+| Role      | Email                   | Password       |
+| --------- | ----------------------- | -------------- |
+| Validator | `maya@vacation.local`   | `Password123!` |
+| Requester | `rachel@vacation.local` | `Password123!` |
+
+
+### Docker (Recommended)
+
+API, web, and Postgres all run in containers.
 
 ```bash
 docker compose up --build
 docker compose exec api pnpm db:seed
 ```
 
-Open **http://localhost:8080**.
+Open **[http://localhost:8080](http://localhost:8080)**. Stop with `docker compose down`.
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Validator | `maya@vacation.local` | `Password123!` |
-| Requester | `rachel@vacation.local` | `Password123!` |
+### Local - Without Docker
 
-Stop with `docker compose down`.
+Install and start **PostgreSQL 16+** on your machine, then create a database and
+user (adjust names/passwords if you prefer):
 
-## Run (local)
+```sql
+CREATE USER vacation WITH PASSWORD 'vacation_dev_pw';
+CREATE DATABASE vacation_manager OWNER vacation;
+```
 
-Postgres runs in Docker; API and web run on the host via `pnpm dev`.
+Copy env overrides so the API talks to `localhost` instead of the Docker service
+name `db`:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local` if your Postgres listens on the default port **5432** (the example
+uses **5433**, which matches the Docker Postgres port in `.env`):
+
+```env
+DATABASE_URL=postgresql://vacation:vacation_dev_pw@localhost:5432/vacation_manager
+FRONT_END_URL=http://localhost:5173
+```
+
+Then migrate, seed, and start API + web on the host:
+
+```bash
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+Open **[http://localhost:5173](http://localhost:5173)**. API on **[http://localhost:8888](http://localhost:8888)**.
+
+**Windows (PowerShell)** — use `Copy-Item .env.local.example .env.local` instead of `cp`.
+
+### Run Postgres in Docker only (for development)
+
+Same as above, but Postgres runs in Docker while API and web use `pnpm dev`:
 
 ```bash
 docker compose up -d db
@@ -37,13 +81,11 @@ pnpm db:seed
 pnpm dev
 ```
 
-Open **http://localhost:5173**. API on **http://localhost:8888**.
+Use the `.env.local.example` values as-is (`localhost:5433` matches `POSTGRES_PORT`
+in `.env`). Open **[http://localhost:5173](http://localhost:5173)**.
 
-`.env.local` overrides `.env` with `DATABASE_URL` pointing at `localhost` (the root `.env` uses host `db`, which only resolves inside Docker Compose).
-
-**Windows (PowerShell)** — same steps; use `Copy-Item .env.local.example .env.local` instead of `cp`.
-
-> If migrate fails with `role "…" does not exist`, another PostgreSQL may be bound to port 5432. Stop it or change `POSTGRES_PORT` in `.env` / `.env.local` (e.g. `5433`) and update `DATABASE_URL` accordingly.
+> If migrate fails with `role "…" does not exist`, check that Postgres is running
+> and that `DATABASE_URL` host/port/user/password match your setup.
 
 ## Test
 
@@ -51,3 +93,4 @@ Open **http://localhost:5173**. API on **http://localhost:8888**.
 pnpm test
 pnpm typecheck
 ```
+
