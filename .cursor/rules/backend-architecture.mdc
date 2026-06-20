@@ -14,9 +14,15 @@ or TypeORM.
   delegate to a controller, map transport errors to a `Response`.
 - **controllers/** — Request orchestration. Call services, pick HTTP status +
   body. No domain rules.
-- **application/services/** — Use-case logic. Writes load/save the aggregate and
-  publish domain events; reads return DTOs from the repository.
+- **application/services/** — Use-case logic, one class per area:
+  - `VacationService` — create/approve/reject + list queries
+  - `AuthService` — credential verification and JWT minting (`login`)
+  - `UserService` — profile lookup (`/auth/me`)
+  Writes load/save the aggregate and publish domain events via `EventBus`;
+  reads go service → repository → DTO (no aggregate).
 - **application/ports/** — Repository and service interfaces.
+- **application/bus/EventBus.ts** — in-process domain event dispatch after
+  writes. There is no command bus; services replace former command/query handlers.
 - **domain/** — `VacationRequest` aggregate (status state machine), `DateRange`
   value object, domain events, typed `DomainError`s. All business rules live
   here and cannot be bypassed.
@@ -28,3 +34,6 @@ Rules:
 - Writes go through the aggregate; persist; then publish domain events.
 - Authorization is a composable wrapper: `authenticate` then `authorize(roles)`.
 - Map `DomainError` → HTTP via the shared `ErrorCode` / `ERROR_HTTP_STATUS`.
+
+Tests: exercise services directly (`application/services/*.test.ts`); domain
+tests cover aggregates and value objects.

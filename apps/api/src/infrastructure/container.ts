@@ -12,7 +12,8 @@ import { TypeOrmUserRepository } from './db/repositories/TypeOrmUserRepository'
 import { TypeOrmVacationRequestRepository } from './db/repositories/TypeOrmVacationRequestRepository'
 import { InProcessEventBus } from './events/InProcessEventBus'
 import { AuditLogSubscriber } from './events/subscribers/AuditLogSubscriber'
-import { NotificationSubscriber } from './events/subscribers/NotificationSubscriber'
+import { RealtimeBroadcastSubscriber } from './events/subscribers/RealtimeBroadcastSubscriber'
+import { connectionManager } from './ws/ConnectionManager'
 
 /** Everything the handlers need, wired once. */
 export interface Container {
@@ -36,7 +37,10 @@ export async function getContainer(): Promise<Container> {
   const hasher = new BcryptPasswordHasher()
   const tokenService = new JwtService(requireEnv('JWT_SECRET'), optionalEnv('JWT_EXPIRES_IN', '8h'))
 
-  const eventBus = new InProcessEventBus([new AuditLogSubscriber(), new NotificationSubscriber()])
+  const eventBus = new InProcessEventBus([
+    new AuditLogSubscriber(),
+    new RealtimeBroadcastSubscriber(vacationRequests, connectionManager),
+  ])
 
   const vacationService = new VacationService(vacationRequests, eventBus)
   const authService = new AuthService(users, hasher, tokenService)

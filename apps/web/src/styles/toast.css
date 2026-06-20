@@ -1,0 +1,36 @@
+[data-sonner-toaster] {
+  --normal-bg: var(--color-surface);
+  --normal-border: var(--color-border);
+  --normal-text: var(--color-text);
+
+  --success-bg: var(--color-success-soft);
+  --success-border: var(--color-border);
+  --success-text: var(--color-success);
+
+  --error-bg: var(--color-danger-soft);
+  --error-border: var(--color-border);
+  --error-text: var(--color-danger);
+
+  --info-bg: var(--color-surface-muted);
+  --info-border: var(--color-border);
+  --info-text: var(--color-text);
+}
+
+[data-sonner-toast] [data-button] {
+  font-family: var(--font-sans);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border: none;
+  font-weight: 500;
+}
+
+[data-sonner-toast] [data-button]:hover {
+  background: var(--color-primary-hover);
+}
+
+[data-sonner-toast] {
+  font-family: var(--font-sans);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}

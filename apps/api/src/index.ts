@@ -1,9 +1,3 @@
-import { loadEnv } from 'commoneventframework'
-
-// Must run before importing modules that read env on load (DataSource, JwtService).
-loadEnv()
-
-// Side-effect import: registers every handler/parser referenced in root.yaml.
 import './generated/HandlerRegistry'
 
 import {
@@ -66,12 +60,54 @@ export const handler = async (
 // own request listener ourselves on 0.0.0.0 (HOST/PORT overridable via env/argv).
 if (process.argv.includes('--local')) {
   const http = require('node:http')
+  const { URL } = require('node:url')
+  const { WebSocketServer } = require('ws')
   const { registerHandler } = require('commoneventframework')
   const devRequestListener = require('commoneventframework/dist/dev/requestListener').default
+  const { getContainer } = require('./infrastructure/container')
+  const { connectionManager } = require('./infrastructure/ws/ConnectionManager')
+  const { getSessionTokenFromCookieHeader } = require('./infrastructure/auth/sessionCookie')
+
   registerHandler(handler)
+
   const port = Number(process.argv[3]) || Number(process.env.PORT) || 8888
   const host = process.env.HOST ?? '0.0.0.0'
-  http.createServer(devRequestListener).listen(port, host, () => {
+  const server = http.createServer(devRequestListener)
+  const wss = new WebSocketServer({ noServer: true })
+  const containerPromise = getContainer()
+
+  server.on('upgrade', (request: import('http').IncomingMessage, socket: import('stream').Duplex, head: Buffer) => {
+    const pathname = new URL(request.url ?? '', `http://${request.headers.host ?? 'localhost'}`).pathname
+    if (pathname !== '/ws') {
+      socket.destroy()
+      return
+    }
+
+    wss.handleUpgrade(request, socket, head, (ws: import('ws').WebSocket) => {
+      wss.emit('connection', ws, request)
+    })
+  })
+
+  wss.on('connection', (socket: import('ws').WebSocket, request: import('http').IncomingMessage) => {
+    void (async () => {
+      const token = getSessionTokenFromCookieHeader(request.headers.cookie)
+      if (!token) {
+        socket.close(4401, 'Missing session')
+        return
+      }
+
+      try {
+        const { tokenService } = await containerPromise
+        const claims = tokenService.verify(token)
+        connectionManager.register(socket, claims.sub, claims.role)
+      } catch {
+        socket.close(4401, 'Invalid session')
+      }
+    })()
+  })
+
+  server.listen(port, host, () => {
     console.log(`Server is running on http://${host}:${port}`)
+    console.log(`WebSocket is running on ws://${host}:${port}/ws`)
   })
 }

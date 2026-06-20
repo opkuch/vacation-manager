@@ -1,9 +1,11 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './styles/main.css'
+import './styles/toast.css'
 import App from './App.vue'
 import { router } from './router'
 import { useTheme } from './composables/useTheme'
+import { useRealtime } from './composables/useRealtime'
 import { useAuthStore } from './stores/auth'
 import { setUnauthorizedHandler } from './lib/axios'
 
@@ -15,11 +17,19 @@ app.use(router)
 
 useTheme().init()
 
-// A 401 from any request clears the session and bounces to login.
 const auth = useAuthStore()
+
 setUnauthorizedHandler(() => {
-  auth.logout()
-  void router.replace('/login')
+  void auth.logout().finally(() => {
+    void router.replace('/login')
+  })
 })
 
-app.mount('#app')
+async function bootstrap(): Promise<void> {
+  await router.isReady()
+  await auth.restore()
+  app.mount('#app')
+  useRealtime().connect()
+}
+
+void bootstrap()
