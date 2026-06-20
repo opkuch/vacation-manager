@@ -1,0 +1,10 @@
+# Never copy host-installed deps (platform-specific binaries) or build output
+# into the image; deps are installed fresh inside the build stage.
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+apps/api/src/generated
+.git
+**/*.log
+.env
+.env.*
