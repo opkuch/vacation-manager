@@ -25,6 +25,12 @@ export const login: HandlerFn = withErrors(async (input: LoginRequest) => {
   return authController.login(input)
 })
 
+// POST /auth/logout (public — clears cookie even when already logged out)
+export const logout: HandlerFn = withErrors(async () => {
+  const { authController } = await getContainer()
+  return authController.logout()
+})
+
 // GET /auth/me (authenticated, any role)
 export const me: HandlerFn = withAuth()(async (_input, ctx) => {
   const { authController } = await getContainer()

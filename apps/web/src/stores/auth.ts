@@ -2,18 +2,15 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { Role, type LoginRequest, type UserDto } from '@vm/shared'
 import { api } from '@/lib/api'
-import { getStoredToken, setStoredToken } from '@/lib/axios'
 
 /**
- * Authentication session: the JWT (persisted in localStorage) and the current
- * user. Authorization (role checks) is exposed as derived helpers, kept separate
- * from identity per project conventions.
+ * Authentication session backed by an httpOnly cookie. The browser stores the JWT;
+ * Pinia holds only the loaded user profile and role helpers.
  */
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(getStoredToken())
   const user = ref<UserDto | null>(null)
 
-  const isAuthenticated = computed(() => Boolean(token.value))
+  const isAuthenticated = computed(() => Boolean(user.value))
   const role = computed(() => user.value?.role ?? null)
   const isRequester = computed(() => role.value === Role.Requester)
   const isValidator = computed(() => role.value === Role.Validator)
@@ -21,31 +18,45 @@ export const useAuthStore = defineStore('auth', () => {
   /** Where to land after login, based on role. */
   const homeRoute = computed(() => (isValidator.value ? '/validation' : '/requests'))
 
-  function setSession(nextToken: string, nextUser: UserDto): void {
-    token.value = nextToken
-    user.value = nextUser
-    setStoredToken(nextToken)
-  }
-
   async function login(credentials: LoginRequest): Promise<void> {
-    const { token: nextToken, user: nextUser } = await api.login(credentials)
-    setSession(nextToken, nextUser)
+    const { user: nextUser } = await api.login(credentials)
+    user.value = nextUser
   }
 
-  /** Re-hydrates the user from a persisted token on app start. */
+  /** Re-hydrates the user from the session cookie (survives page refresh). */
+  let pendingRestore: Promise<void> | null = null
+
   async function restore(): Promise<void> {
-    if (!token.value || user.value) return
-    user.value = await api.me()
+    if (user.value) return
+    if (pendingRestore) return pendingRestore
+
+    pendingRestore = (async () => {
+      try {
+        user.value = await api.me({ silent: true })
+      } catch {
+        clearSession()
+      } finally {
+        pendingRestore = null
+      }
+    })()
+
+    return pendingRestore
   }
 
-  function logout(): void {
-    token.value = null
+  function clearSession(): void {
     user.value = null
-    setStoredToken(null)
+  }
+
+  async function logout(): Promise<void> {
+    clearSession()
+    try {
+      await api.logout({ silent: true })
+    } catch {
+      // Cookie may already be cleared.
+    }
   }
 
   return {
-    token,
     user,
     isAuthenticated,
     role,
@@ -54,6 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     homeRoute,
     login,
     restore,
+    clearSession,
     logout,
   }
 })

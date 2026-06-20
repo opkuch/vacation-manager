@@ -16,6 +16,13 @@ paths:
         '200': { description: Logged in }
         '401': { description: Invalid credentials }
 
+  /auth/logout:
+    post:
+      summary: Clear the session cookie
+      x-handler: handlers/auth#logout
+      responses:
+        '200': { description: Logged out }
+
   /auth/me:
     get:
       summary: Current authenticated user

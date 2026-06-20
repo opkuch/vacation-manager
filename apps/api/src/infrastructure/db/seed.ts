@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
-import { loadEnv } from 'commoneventframework'
+import { loadAppEnv } from '../config/loadAppEnv'
 import { Role, VacationStatus, type DateOnly } from '@vm/shared'
 
 // Load env before importing the DataSource, which reads DATABASE_URL on construction.
-loadEnv()
+loadAppEnv()
 
 const DEMO_PASSWORD = 'Password123!'
 

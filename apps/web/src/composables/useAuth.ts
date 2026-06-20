@@ -17,6 +17,7 @@ export function useAuth() {
   async function logout(): Promise<void> {
     store.logout()
     await router.replace('/login')
+    location.reload()
   }
 
   return {

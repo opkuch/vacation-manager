@@ -11,6 +11,7 @@ type Access = 'public' | 'authenticated' | Role
  */
 export const API_ROUTES = {
   login: { method: 'POST', path: '/auth/login', access: 'public' },
+  logout: { method: 'POST', path: '/auth/logout', access: 'public' },
   me: { method: 'GET', path: '/auth/me', access: 'authenticated' },
 
   createRequest: { method: 'POST', path: '/vacation-requests', access: Role.Requester },

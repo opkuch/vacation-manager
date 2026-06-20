@@ -5,7 +5,7 @@
   "description": "Vacation Manager API — CEF/Node, handler → controller → service",
   "scripts": {
     "codegen": "cef-gen-handlers",
-    "dev": "pnpm codegen && tsx watch src/index.ts --local",
+    "dev": "pnpm codegen && tsx watch --import ./src/preload.ts src/index.ts --local",
     "build": "cef-build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

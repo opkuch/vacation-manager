@@ -54,22 +54,15 @@ export const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
+  // Cookie may exist while Pinia is empty after a refresh — restore before auth checks.
+  await auth.restore()
+
   if (to.meta.public) {
     return auth.isAuthenticated ? auth.homeRoute : true
   }
 
   if (!auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
-  }
-
-  // Ensure the user/role is loaded before enforcing role policy.
-  if (!auth.user) {
-    try {
-      await auth.restore()
-    } catch {
-      auth.logout()
-      return { name: 'login', query: { redirect: to.fullPath } }
-    }
   }
 
   if (to.meta.access && auth.role !== to.meta.access) {

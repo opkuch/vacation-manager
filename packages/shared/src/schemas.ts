@@ -13,7 +13,6 @@ export const LoginRequestSchema = z.object({
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 
 export const LoginResponseSchema = z.object({
-  token: z.string(),
   user: UserDtoSchema,
 })
 export type LoginResponse = z.infer<typeof LoginResponseSchema>

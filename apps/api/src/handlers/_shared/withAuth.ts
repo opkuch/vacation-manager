@@ -1,20 +1,26 @@
 import { AUTH_HEADER, BEARER_PREFIX, ErrorCode, type JwtClaims, type Role } from '@vm/shared'
 import { DomainError } from '../../domain/errors/DomainError'
+import { getSessionTokenFromEvent } from '../../infrastructure/auth/sessionCookie'
 import { getContainer } from '../../infrastructure/container'
 import { toErrorResponse } from './respond'
 import { type AuthedHandler, type CommonEvent, type HandlerFn } from './types'
 
+function readBearerToken(event: CommonEvent): string | null {
+  const header = event.headers?.[AUTH_HEADER] ?? event.headers?.['Authorization']
+  if (!header || !header.startsWith(BEARER_PREFIX)) return null
+  return header.slice(BEARER_PREFIX.length)
+}
+
 /**
- * Authentication: extract and verify the bearer token into claims.
- * Throws `DomainError(UNAUTHORIZED)` when the header is missing/malformed or the
- * token is invalid. This is identity only — no role logic here.
+ * Authentication: verify the httpOnly session cookie (preferred) or bearer token.
+ * Throws `DomainError(UNAUTHORIZED)` when credentials are missing or invalid.
+ * This is identity only — no role logic here.
  */
 export async function authenticate(event: CommonEvent): Promise<JwtClaims> {
-  const header = event.headers?.[AUTH_HEADER] ?? event.headers?.['Authorization']
-  if (!header || !header.startsWith(BEARER_PREFIX)) {
-    throw new DomainError(ErrorCode.UNAUTHORIZED, 'Missing or malformed Authorization header')
+  const token = getSessionTokenFromEvent(event) ?? readBearerToken(event)
+  if (!token) {
+    throw new DomainError(ErrorCode.UNAUTHORIZED, 'Missing or invalid session')
   }
-  const token = header.slice(BEARER_PREFIX.length)
   const { tokenService } = await getContainer()
   return tokenService.verify(token)
 }

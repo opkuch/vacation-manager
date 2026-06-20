@@ -25,9 +25,17 @@ export const api = {
     return data
   },
 
-  async me(): Promise<UserDto> {
-    const { data } = await apiClient.get<UserDto>(API_ROUTES.me.path)
+  async me(options?: { silent?: boolean }): Promise<UserDto> {
+    const { data } = await apiClient.get<UserDto>(API_ROUTES.me.path, {
+      skipAuthRedirect: options?.silent,
+    })
     return data
+  },
+
+  async logout(options?: { silent?: boolean }): Promise<void> {
+    await apiClient.post(API_ROUTES.logout.path, undefined, {
+      skipAuthRedirect: options?.silent,
+    })
   },
 
   async createRequest(body: CreateVacationRequest): Promise<VacationRequestDto> {

@@ -1,7 +1,7 @@
-import { loadEnv } from 'commoneventframework'
+import { loadAppEnv } from '../config/loadAppEnv'
 
 // Load env before importing the DataSource, which reads DATABASE_URL on construction.
-loadEnv()
+loadAppEnv()
 
 async function run(): Promise<void> {
   const { AppDataSource } = await import('./data-source')

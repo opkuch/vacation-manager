@@ -27,15 +27,23 @@ Stop with `docker compose down`.
 
 ## Run (local)
 
+Postgres runs in Docker; API and web run on the host via `pnpm dev`.
+
 ```bash
 docker compose up -d db
-export DATABASE_URL=postgresql://vacation:vacation_dev_pw@localhost:5432/vacation_manager
-pnpm --filter @vm/api db:migrate
-pnpm --filter @vm/api db:seed
+cp .env.local.example .env.local
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
-API on `:8888`, web on `:5173`.
+Open **http://localhost:5173**. API on **http://localhost:8888**.
+
+`.env.local` overrides `.env` with `DATABASE_URL` pointing at `localhost` (the root `.env` uses host `db`, which only resolves inside Docker Compose).
+
+**Windows (PowerShell)** — same steps; use `Copy-Item .env.local.example .env.local` instead of `cp`.
+
+> If migrate fails with `role "…" does not exist`, another PostgreSQL may be bound to port 5432. Stop it or change `POSTGRES_PORT` in `.env` / `.env.local` (e.g. `5433`) and update `DATABASE_URL` accordingly.
 
 ## Test
 
