@@ -1,0 +1,88 @@
+openapi: 3.0.3
+info:
+  title: Vacation Manager API
+  version: 1.0.0
+  description: >-
+    HTTP surface for the Vacation Manager. Routes mirror @vm/shared API_ROUTES.
+    x-handler / x-inputParser use the file#export form resolved by CEF codegen.
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate and receive a JWT
+      x-handler: handlers/auth#login
+      x-inputParser: handlers/auth#parseLogin
+      responses:
+        '200': { description: Logged in }
+        '401': { description: Invalid credentials }
+
+  /auth/me:
+    get:
+      summary: Current authenticated user
+      x-handler: handlers/auth#me
+      responses:
+        '200': { description: The current user }
+        '401': { description: Unauthorized }
+
+  /vacation-requests:
+    post:
+      summary: Create a vacation request (Requester)
+      x-handler: handlers/vacationRequests#createRequest
+      x-inputParser: handlers/vacationRequests#parseCreateRequest
+      responses:
+        '201': { description: Created }
+        '409': { description: Overlapping request }
+        '422': { description: Invalid date range / past date }
+    get:
+      summary: List all requests with filters (Validator)
+      x-handler: handlers/vacationRequests#listAll
+      x-inputParser: handlers/vacationRequests#parseListAll
+      responses:
+        '200': { description: Paginated requests }
+        '403': { description: Forbidden }
+
+  /vacation-requests/mine:
+    get:
+      summary: List the requester's own requests
+      x-handler: handlers/vacationRequests#listMine
+      x-inputParser: handlers/vacationRequests#parseListMine
+      responses:
+        '200': { description: Paginated requests }
+
+  /vacation-requests/team:
+    get:
+      summary: Team planning view (Pending/Approved for all users)
+      x-handler: handlers/vacationRequests#listTeam
+      x-inputParser: handlers/vacationRequests#parseListTeam
+      responses:
+        '200': { description: Paginated requests }
+
+  /vacation-requests/:id/approve:
+    post:
+      summary: Approve a pending request (Validator)
+      x-handler: handlers/vacationRequests#approveRequest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Approved }
+        '404': { description: Not found }
+        '409': { description: Request is not pending }
+
+  /vacation-requests/:id/reject:
+    post:
+      summary: Reject a pending request with a comment (Validator)
+      x-handler: handlers/vacationRequests#rejectRequest
+      x-inputParser: handlers/vacationRequests#parseRejectRequest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Rejected }
+        '404': { description: Not found }
+        '409': { description: Request is not pending }
+        '422': { description: Rejection comment required }
