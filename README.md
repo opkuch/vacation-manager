@@ -1,5 +1,18 @@
 # Vacation Manager
 
+## Scalability
+
+This project intentionally favors **simplicity**: a single API process, in-process
+WebSockets and event bus, and a straightforward Docker Compose stack. That keeps
+the app easy to run locally and the architecture easy to follow.
+
+In a real production environment at higher traffic, you would typically choose  
+more scalable options - multiple API instances behind a load balancer, managed  
+PostgreSQL with connection pooling, externalized realtime (e.g. Redis pub/sub),  
+async event delivery, caching, and observability. The layered design (handlers →  
+services → ports) is meant so those upgrades can be added without rewriting  
+core business logic.
+
 ## Install
 
 Requires **Node 20+**, **pnpm**, and **PostgreSQL**. **Docker is optional** — use it for
